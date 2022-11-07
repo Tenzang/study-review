@@ -1,0 +1,3 @@
+text,responses,correct_res_index,topic_tags
+
+Is Loden the greatest?,"['yes', 'no']",0,"['funny', 'random']"

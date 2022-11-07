@@ -1,11 +1,10 @@
-# %%
 # imports
 import random
+import csv
+import os
 
-# %%
 questions = [] # temporary until csv storage complete
 
-# %%
 class Question():
     def __init__(self, text, responses, correct_res_index, topic_tags):
         self.text = text
@@ -13,12 +12,19 @@ class Question():
         self.correct_res_index = correct_res_index
         self.topic_tags = topic_tags
 
+    def to_dict(self):
+        return {
+            "text": self.text,
+            "responses": self.responses,
+            "correct_res_index": self.correct_res_index,
+            "topic_tags": self.topic_tags
+        }
+
     def __repr__(self):
         return f"{{\ntext: {self.text},\nresponses: {self.responses},\ncorrect_res_index: {self.correct_res_index},\ntopic_tags: {self.topic_tags}\n}}"
 
-# %%
 # STUDY REVIEW PROJECT
-class Study_Session():
+class StudySession():
     def __init__(self, questions = []):
         self.questions = questions
 
@@ -62,12 +68,30 @@ class Study_Session():
         return Question(text,  responses, int(correct_res_index), topic_tags)
 
     def add_question(self, question):
-        questions.append(question)
+        dict_question = question.to_dict()
+        fieldnames = list(dict_question.keys())
+
+        if not os.path.exists("./questions.csv"):
+            with open("./questions.csv", "w") as file:
+                writer = csv.DictWriter(file, fieldnames=fieldnames)
+                writer.writeheader()
+
+        with open('questions.csv', 'a') as file:
+            writer = csv.DictWriter(file, fieldnames) # create a .to_dict() method
+            writer.writerow(dict_question)
+
+    def fetch_questions(self):
+        # go into csv
+        with open('questions.csv', 'r') as file:
+            # retrieve questions as list of dictionaries
+            questions = list(csv.DictReader(file))
+            # convert dictionaries into Questions
+            return [Question(*question.values()) for question in questions]
 
     def start_review(self):
         user_response = 'Y'
         while user_response.upper() in ('Y', 'YES'):    
-            random_question = random.choice(questions)
+            random_question = random.choice(self.fetch_questions())
 
             print(f"Questions:\n{random_question.text}")
             print("Choices:")
@@ -95,11 +119,7 @@ class Study_Session():
             elif response == "B":
                 self.start_review()
 
-# %%
 # create new study session
-study_session = Study_Session()
+study_session = StudySession()
 
-# %%
 study_session.start()
-
-
